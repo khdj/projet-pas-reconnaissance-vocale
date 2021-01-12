@@ -13,8 +13,7 @@ from google.cloud import speech
 from google.oauth2 import service_account
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 from ibm_watson import SpeechToTextV1
-
-
+import urllib.parse
 # import requests
 # import speech_recognition as sr
 # from google.oauth2 import service_account
@@ -68,7 +67,7 @@ class AwsApi(API):
     def transcribe(self, audio_file_path, audio_type, lang_model):
         self.check_job_name(self.job_name)
         file_name = ntpath.basename(audio_file_path)
-        job_uri = f"{self.path}{file_name}"
+        job_uri = f"{self.path}{urllib.parse.quote(file_name)}" 
         self.service.start_transcription_job(TranscriptionJobName=self.job_name, Media={'MediaFileUri': job_uri},
                                              MediaFormat=audio_type, LanguageCode=lang_model)
 

@@ -22,7 +22,7 @@ def download(link, format='mp3', lang='en'):
     }
 
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        meta = ydl.extract_info(link, download=False)
+        meta = ydl.extract_info(link, download=True)
     print("Download SUCCESSFUL")
 
     upload_date = meta['upload_date']
