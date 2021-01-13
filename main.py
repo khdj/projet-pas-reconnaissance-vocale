@@ -6,7 +6,7 @@
 from api import *
 from dl_audio_subs_from_yt import *
 from vtt_to_string import vtt_to_text
-
+import streamlit as st
 
 AUDIO_PATH = "./Audio_files/"
 MEDIA_FORMAT = 'mp3'
@@ -42,9 +42,12 @@ def run(yt_url):
     lang = LANG_MODEL[:2]
 
     #ici j'ai commenté et j'ai écrit les fichiers en dur pcq je voulais pas qu'il me les reletecharge a chq fois pour gagner du tps
-    #audio, subs = download(yt_url, lang=lang)
-    audio = "20201013 Why is the world warming up _ Kristen Bell + Giant Ant.mp3"
-    subs = "20201013 Why is the world warming up _ Kristen Bell + Giant Ant.en.vtt"
+    audio, subs = download(yt_url, lang=lang)
+    #audio = "20201013 Why is the world warming up _ Kristen Bell + Giant Ant.mp3"
+    #subs = "20201013 Why is the world warming up _ Kristen Bell + Giant Ant.en.vtt"
+
+    st.write("Téléchargement de la vidéo :" + audio + " et de ses sous-titres terminé." )
+    st.write("appelle des API : ... ")
 
     subs_formatted = vtt_to_text(f"{AUDIO_PATH}{subs}")
 
@@ -52,9 +55,15 @@ def run(yt_url):
     google = GoogleApi()
     amazon = AwsApi()
 
-    add_to_csv(watson, "watson", audio, subs_formatted)
+    st.write("Appelle Google... ")
     add_to_csv(google, "google", audio, subs_formatted)
+    st.write("Google terminé ")
+    st.write("Appelle Watson ... ")
+    add_to_csv(watson, "watson", audio, subs_formatted)
+    st.write("Watson terminé ")
+    st.write("Appelle Amazon ... ")
     add_to_csv(amazon, "amazon", audio, subs_formatted)
+    st.write("Amazon terminé ")
 
 
 # Press the green button in the gutter to run the script.

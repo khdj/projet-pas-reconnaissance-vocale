@@ -1,5 +1,8 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+import altair as alt
+import matplotlib.pyplot as plt
 
 from dl_audio_subs_from_yt import *
 from api import *
@@ -10,10 +13,18 @@ from main import *
 AUDIO_PATH = './Audio_files/'
 MEDIA_FORMAT = 'mp3'
 LANGUAGE = 'en-US'
+CSV_FILE_NAME = 'api_comparison.csv'
 
+@st.cache
+def load_data(file_name):
+	df = pd.read_csv(file_name, index_col=0)
+
+	return df
 
 def main():
 	st.title('Projet PAS, reconnaissance vocale')
+	st.write("### Comparateur d'API")
+	st.write('Khadidiatou BADJI, Raphaël LAURENT')
 
 	st.write("""## Entrez un lien Youtube : """)
 
@@ -22,63 +33,41 @@ def main():
 
 	if st.button('Valider'):
 
-		audio_file_name, subs_file_name = download(yt_link)
-		st.write("""Téléchargement de la vidéo :""" + audio_file_name + """ et de ses sous-titres terminé. """)
-		file_path = str(AUDIO_PATH + audio_file_name)
-		st.write("""appelle des API : """)
-
 		#Pour appeler toutes API en mm tps (+ mets les resultats dans le csv)
-		#run(lien_yt)
+		#run(yt_link)
 
-		#API 
-		#AWS
-		AwsAPI = AwsApi()
-		upload = AwsAPI.upload_to_aws(file_path, audio_file_name)
-		if upload:
-			st.write("""Upload dans le bucket Amazon terminé. """)
+		st.write('#### Résultats pour ce run :')
+		df = load_data(CSV_FILE_NAME)
 
+		table_execution_time = df[['api', 'execution_time']]
+		st.write(table_execution_time.iloc[-3:])
+		chart = alt.Chart(df.iloc[-3:]).mark_bar().encode(
+	    alt.X("execution_time"),
+	    alt.Y('api'),
+	    color = "api",
+		)
+		st.altair_chart(chart)
+
+		table_word_error_rate = df[['api','word_error_rate',]]
+		st.write(table_word_error_rate.iloc[-3:])
+		chart = alt.Chart(df.iloc[-3:]).mark_bar().encode(
+	    alt.X("word_error_rate"),
+	    alt.Y('api'),
+	    color = "api",
+		)
+		st.altair_chart(chart)
+
+
+		table_grammatical_score_percentage = df[['api','grammatical_score_percentage']]
+		st.write(table_grammatical_score_percentage.iloc[-3:])
+		chart = alt.Chart(df.iloc[-3:]).mark_bar().encode(
+		    alt.X("grammatical_score_percentage"),
+		    alt.Y('api'),
+		    color = "api",
+		)
+		st.altair_chart(chart)
 		
-		text_AWS = AwsAPI.transcribe(file_path, MEDIA_FORMAT, LANGUAGE)
-
-		#Watson
-		watson = WatsonApi()
-
-		text_watson = watson.transcribe(file_path, MEDIA_FORMAT, LANGUAGE)
-
-		#google
-		GoogleApi = GoogleApi()
-
-		text_google = GoogleApi.transcribe(file_path, MEDIA_FORMAT, LANGUAGE)
-
-
-		st.write('text_AWS:')
-		st.write(text_AWS)
-
-		st.write('text_watson:')
-		st.write(text_watson)
-
-		st.write('text_google:')
-		st.write(text_google)
-
-
-		vtt_file_path = str(AUDIO_PATH + subs_file_name)
-		subtitles = vtt_to_string(vtt_file_path)
-
-		st.write('subtitles:')
-		st.write(subtitles)
-
-
-		dict_text = {}
-		dict_wer = {}
-		#dict_text, dict_wer = find_all_wer(subtitles, text_watson, text_google, text_AWS)
-		#test :
-		error_aws = wer(subtitles, text_AWS)
-
-		st.write('error_aws:')
-		st.write(error_aws)
-
-
-
+		st.write(df)
 
 
 main()

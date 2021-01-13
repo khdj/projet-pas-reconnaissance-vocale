@@ -1,13 +1,14 @@
 # install ibm_watson
 # install google-cloud-speech
 # install boto3
-
+import io
 import json
 import ntpath
 import time
 import urllib
 import urllib.parse
 from abc import abstractmethod
+import pandas as pd
 
 import boto3
 from botocore.exceptions import NoCredentialsError
@@ -18,7 +19,7 @@ from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 from ibm_watson import SpeechToTextV1
 
 import mp3_to_wav
-
+from compare_api import *
 
 # import requests
 # import speech_recognition as sr
