@@ -3,9 +3,10 @@ import pandas as pd
 
 from dl_audio_subs_from_yt import *
 from api import *
+from compare_api import *
 
 
-AUDIO_PATH = '/Audios_files/'
+AUDIO_PATH = './Audios_files/'
 MEDIA_FORMAT = 'mp3'
 LANGUAGE = 'en-US'
 
@@ -28,7 +29,32 @@ def main():
 		#test
 		AwsAPI = AwsApi()
 
-		text = AwsAPI.transcribe(file_path, MEDIA_FORMAT, LANGUAGE)
-		st.write(text)
+		text_AWS = AwsAPI.transcribe(file_path, MEDIA_FORMAT, LANGUAGE)
+
+		#text_watson = 
+
+		#text_google = 
+		st.write('text_AWS:')
+		st.write(text_AWS)
+
+		vtt_file_path = str(AUDIO_PATH + subs_file_name)
+		subtitles = vtt_to_string(vtt_file_path)
+
+		st.write('subtitles:')
+		st.write(subtitles)
+
+
+		dict_text = {}
+		dict_wer = {}
+		#dict_text, dict_wer = find_all_wer(subtitles, text_watson, text_google, text_AWS)
+		#test :
+		error_aws = wer(subtitles, text_AWS)
+
+		st.write('error_aws:')
+		st.write(error_aws)
+
+
+
+
 
 main()
