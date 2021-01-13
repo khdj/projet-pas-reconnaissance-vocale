@@ -34,7 +34,7 @@ def main():
 	if st.button('Valider'):
 
 		#Pour appeler toutes API en mm tps (+ mets les resultats dans le csv)
-		#run(yt_link)
+		run(yt_link)
 
 		st.write('#### Résultats pour ce run :')
 		df = load_data(CSV_FILE_NAME)
