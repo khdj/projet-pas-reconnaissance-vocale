@@ -4,6 +4,7 @@ import pandas as pd
 from dl_audio_subs_from_yt import *
 from api import *
 from compare_api import *
+from main import *
 
 
 AUDIO_PATH = './Audio_files/'
@@ -25,6 +26,9 @@ def main():
 		st.write("""Téléchargement de la vidéo :""" + audio_file_name + """ et de ses sous-titres terminé. """)
 		file_path = str(AUDIO_PATH + audio_file_name)
 		st.write("""appelle des API : """)
+
+		#Pour appeler toutes API en mm tps (+ mets les resultats dans le csv)
+		#run(lien_yt)
 
 		#API 
 		#AWS

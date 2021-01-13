@@ -12,17 +12,18 @@ import boto3
 from botocore.exceptions import NoCredentialsError
 from google.cloud import speech
 from google.oauth2 import service_account
+from google.cloud import storage
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 from ibm_watson import SpeechToTextV1
 import urllib.parse
 import time
 from compare_api import *
 import pandas as pd
+import mp3_to_wav
 
 
 # import requests
 # import speech_recognition as sr
-# from google.oauth2 import service_account
 
 
 class API:
@@ -32,31 +33,6 @@ class API:
     @abstractmethod
     def transcribe(self, audio_file_path, audio_type, lang_model):
         raise NotImplementedError()
-
-    def add_to_csv(self, audio, audio_file_path, real_text, api_name, audio_type="mp3", lang_model="en-US"):
-        print("Start decoding for watson...")
-        start_time = time.time()
-        text_watson = self.transcribe(audio_file_path, audio_type, lang_model)
-        elapsed_time = time.time() - start_time
-        print(f"Decoding successful in {elapsed_time} s")
-
-        # print(text_watson)
-        g_errors_nb, g_error_score = get_grammatical_score(text_watson)
-        error_rate =  -1 #get_error_rate(real_text, text_watson)
-        api_data = {
-            "api": api_name,
-            "audio": audio,
-            "execution_time": elapsed_time,
-            "word_error_rate": error_rate,
-            "grammatical_errors": g_errors_nb,
-            "grammatical_score_percentage": g_error_score,
-            "transcription": text_watson,
-        }
-        # print(text_watson)
-        df = pd.DataFrame([api_data])
-        df.to_csv("api_comparison.csv")#, mode='a', header=False)
-        print("Successfully added to csv")
-
 
 # pip install PyJWT==1.7.1
 class WatsonApi(API):
@@ -114,7 +90,7 @@ class AwsApi(API):
                 self.service.delete_transcription_job(TranscriptionJobName=job_name)
                 break
 
-    def transcribe(self, audio_file_path, audio_type, lang_model):
+    def transcribe(self, audio_file_path, audio_type="mp3", lang_model="en-US"):
         file_name = ntpath.basename(audio_file_path)
         uploaded = self.upload_to_aws(audio_file_path, file_name)
         if not uploaded:
@@ -140,23 +116,47 @@ class AwsApi(API):
                 print(text)
         return text
 
-
 # real google api
 #prend uniquement un .wav
 class GoogleApi(API):
     def __init__(self):
         # Instantiates a client
-        API_CREDENTIALS = "projet-pas-text-to-speech-api-f2a45acc63a5.json"
+        API_CREDENTIALS = "projet reconnaissance vocale-b4b3024e1a7a.json"
         my_credentials = service_account.Credentials.from_service_account_file(API_CREDENTIALS)
         self.client = speech.SpeechClient(credentials=my_credentials)
+        self.storage_client = storage.Client.from_service_account_json(API_CREDENTIALS)
+        self.bucket_name = "bucket-projet-pas"
+
+    def upload_blob(self, source_file_name):
+        """Uploads a file to the bucket."""
+        #print("Authentication OK")
+
+        bucket = self.storage_client.bucket(self.bucket_name)
+        #print(bucket)
+        destination_blob_name = source_file_name
+        blob = bucket.blob(destination_blob_name)
+        #print(blob)
+
+        start = time.time()
+        print(f"Start upload... at {start}")
+        blob.upload_from_filename(source_file_name)
+        print(f"Upload successful in {time.time() - start}")
+
+        #print(
+        #    "File {} uploaded to {}.".format(
+        #        source_file_name, destination_blob_name
+        #    )
+        #)
 
     # need to convert to wav
-    def transcribe(self, audio_file_path, audio_type, lang_model):
+    def transcribe(self, audio_file_path, audio_type="wav", lang_model="en-US"):
 
-        # Uploads the audio file into cloud memory
-        with io.open(audio_file_path, "rb") as audio_file:
-            content = audio_file.read()
-            audio = speech.RecognitionAudio(content=content)
+        #Converts file to wav
+        wav_audio = mp3_to_wav.convert(audio_file_path)
+        self.upload_blob(wav_audio)
+
+        uri = f"gs://{self.bucket_name}/{wav_audio}"
+        audio = speech.RecognitionAudio(uri=uri)
 
         config = speech.RecognitionConfig(
             encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
@@ -165,7 +165,8 @@ class GoogleApi(API):
         )
 
         # Sends the request to google to transcribe the audio
-        response = self.client.recognize(request={"config": config, "audio": audio})
+        results = self.client.long_running_recognize(config=config, audio=audio)
+        response = results.result()
 
         # Reads the response
         for result in response.results:

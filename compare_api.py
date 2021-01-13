@@ -16,13 +16,12 @@ here: (other script to get all data ?)
 
 # install webvett-py
 
-#from jiwer import wer
+from jiwer import wer
 
-#install asr-evaluation
+# install asr-evaluation
 # import asr_evaluation
 
 
-import webvtt
 import requests
 
 """
@@ -43,6 +42,7 @@ def vtt_to_string(vtt_file_name):
     return transcript
 """
 
+
 def get_grammatical_score(text):  # returns (grammatical errors nb, grammatical errors percentage)
     url = "https://virtualwritingtutor.com/api/checkgrammar.php"
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
@@ -61,7 +61,7 @@ def get_grammatical_score(text):  # returns (grammatical errors nb, grammatical 
         print(f"Problem with request ! {r.status_code} error")
         return -1, -1
 
-"""
+
 def get_error_rate(real_text, transcript):
     return wer(real_text, transcript)
 
@@ -73,7 +73,6 @@ def find_all_wer(real_text, watson_text, google_text, amazon_text):
     return {"watson": watson_text, "google": google_text, "amazon": amazon_text}, {"watson": error_watson,
                                                                                    "google": error_google,
                                                                                    "amazon": error_amazon}
-"""
 
 """def run(yt_url, lang_model):
     lang = lang_model[:2]
