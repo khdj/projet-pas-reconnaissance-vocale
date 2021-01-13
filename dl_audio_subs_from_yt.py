@@ -13,7 +13,7 @@ def download(link, format='mp3', lang='en'):
         'writesubtitles': True,
         'subtitleslangs': [lang],
         'subtitlesformat': 'vtt/best',
-        'outtmpl': '/Audios_files/%(upload_date)s %(title)s.%(ext)s',
+        'outtmpl': '/Audio_files/%(upload_date)s %(title)s.%(ext)s',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': format,
