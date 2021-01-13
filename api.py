@@ -2,23 +2,21 @@
 # install google-cloud-speech
 # install boto3
 
-import io
 import json
 import ntpath
+import time
 import urllib
+import urllib.parse
 from abc import abstractmethod
 
 import boto3
 from botocore.exceptions import NoCredentialsError
 from google.cloud import speech
-from google.oauth2 import service_account
 from google.cloud import storage
+from google.oauth2 import service_account
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 from ibm_watson import SpeechToTextV1
-import urllib.parse
-import time
-from compare_api import *
-import pandas as pd
+
 import mp3_to_wav
 
 
@@ -27,12 +25,13 @@ import mp3_to_wav
 
 
 class API:
-    #def __init__(self):
-        #self.lang
+    # def __init__(self):
+    # self.lang
 
     @abstractmethod
     def transcribe(self, audio_file_path, audio_type, lang_model):
         raise NotImplementedError()
+
 
 # pip install PyJWT==1.7.1
 class WatsonApi(API):
@@ -67,11 +66,11 @@ class AwsApi(API):
         self.service = boto3.client('transcribe', aws_access_key_id=AWS_ACCESS_KEY_ID,
                                     aws_secret_access_key=AWS_SECRET_ACCESS_KEY, region_name='eu-west-3')
         self.service_upload = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY_ID,
-                                    aws_secret_access_key=AWS_SECRET_ACCESS_KEY, region_name='eu-west-3')
+                                           aws_secret_access_key=AWS_SECRET_ACCESS_KEY, region_name='eu-west-3')
 
     def upload_to_aws(self, local_file, service_file):
         try:
-            #AttributeError: 'TranscribeService' object has no attribute 'upload_file' !!
+            # AttributeError: 'TranscribeService' object has no attribute 'upload_file' !!
             self.service_upload.upload_file(local_file, self.bucket_name, service_file)
             print("Upload Successful")
             return True
@@ -116,8 +115,9 @@ class AwsApi(API):
                 print(text)
         return text
 
+
 # real google api
-#prend uniquement un .wav
+# prend uniquement un .wav
 class GoogleApi(API):
     def __init__(self):
         # Instantiates a client
@@ -129,29 +129,28 @@ class GoogleApi(API):
 
     def upload_blob(self, source_file_name):
         """Uploads a file to the bucket."""
-        #print("Authentication OK")
+        # print("Authentication OK")
 
         bucket = self.storage_client.bucket(self.bucket_name)
-        #print(bucket)
+        # print(bucket)
         destination_blob_name = source_file_name
         blob = bucket.blob(destination_blob_name)
-        #print(blob)
+        # print(blob)
 
         start = time.time()
         print(f"Start upload... at {start}")
         blob.upload_from_filename(source_file_name)
         print(f"Upload successful in {time.time() - start}")
 
-        #print(
+        # print(
         #    "File {} uploaded to {}.".format(
         #        source_file_name, destination_blob_name
         #    )
-        #)
+        # )
 
     # need to convert to wav
     def transcribe(self, audio_file_path, audio_type="wav", lang_model="en-US"):
-
-        #Converts file to wav
+        # Converts file to wav
         wav_audio = mp3_to_wav.convert(audio_file_path)
         self.upload_blob(wav_audio)
 
@@ -169,9 +168,10 @@ class GoogleApi(API):
         response = results.result()
 
         # Reads the response
+        text = ""
         for result in response.results:
-            print("Transcript: {}".format(result.alternatives[0].transcript))
+            text = f"{text}{result.alternatives[0].transcript}"
 
-        return result.alternatives[0].transcript
+        return text
 
 ## other google api (speechrecognition module)
