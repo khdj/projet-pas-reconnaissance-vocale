@@ -90,11 +90,13 @@ class AwsApi(API):
         self.path = 'https://s3.amazonaws.com/bucketpas/'
         self.service = boto3.client('transcribe', aws_access_key_id=AWS_ACCESS_KEY_ID,
                                     aws_secret_access_key=AWS_SECRET_ACCESS_KEY, region_name='eu-west-3')
+        self.service_upload = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                    aws_secret_access_key=AWS_SECRET_ACCESS_KEY, region_name='eu-west-3')
 
     def upload_to_aws(self, local_file, service_file):
         try:
             #AttributeError: 'TranscribeService' object has no attribute 'upload_file' !!
-            self.service.upload_file(local_file, self.bucket_name, service_file)
+            self.service_upload.upload_file(local_file, self.bucket_name, service_file)
             print("Upload Successful")
             return True
         except FileNotFoundError:

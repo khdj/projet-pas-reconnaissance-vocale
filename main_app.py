@@ -6,7 +6,7 @@ from api import *
 from compare_api import *
 
 
-AUDIO_PATH = './Audios_files/'
+AUDIO_PATH = './Audio_files/'
 MEDIA_FORMAT = 'mp3'
 LANGUAGE = 'en-US'
 
@@ -26,16 +26,36 @@ def main():
 		file_path = str(AUDIO_PATH + audio_file_name)
 		st.write("""appelle des API : """)
 
-		#test
+		#API 
+		#AWS
 		AwsAPI = AwsApi()
+		upload = AwsAPI.upload_to_aws(file_path, audio_file_name)
+		if upload:
+			st.write("""Upload dans le bucket Amazon terminé. """)
 
+		
 		text_AWS = AwsAPI.transcribe(file_path, MEDIA_FORMAT, LANGUAGE)
 
-		#text_watson = 
+		#Watson
+		watson = WatsonApi()
 
-		#text_google = 
+		text_watson = watson.transcribe(file_path, MEDIA_FORMAT, LANGUAGE)
+
+		#google
+		GoogleApi = GoogleApi()
+
+		text_google = GoogleApi.transcribe(file_path, MEDIA_FORMAT, LANGUAGE)
+
+
 		st.write('text_AWS:')
 		st.write(text_AWS)
+
+		st.write('text_watson:')
+		st.write(text_watson)
+
+		st.write('text_google:')
+		st.write(text_google)
+
 
 		vtt_file_path = str(AUDIO_PATH + subs_file_name)
 		subtitles = vtt_to_string(vtt_file_path)

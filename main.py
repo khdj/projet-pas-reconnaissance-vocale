@@ -12,7 +12,7 @@ import pandas as pd
 
 
 def run(yt_url, lang_model="en-US"):
-    AUDIO_PATH = "Audio_files/"
+    AUDIO_PATH = "./Audio_files/"
     lang = lang_model[:2]
     audio, subs = download(yt_url, lang=lang)
 
